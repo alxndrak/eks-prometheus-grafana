@@ -1,0 +1,66 @@
+#Create EKS cluster 
+eksctl create cluster --node-volume-size=15 --zones=us-east-1a,us-east-1b
+
+#Install csi driver for EBS (for statefulsets volumes)
+
+#get your clustername 
+aws eks list-clusters
+cluster_name=floral-creature-1722365091
+
+#Create an IAM OIDC identity provider
+eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
+
+#Create iam role 
+eksctl create iamserviceaccount \
+    --name ebs-csi-controller-sa \
+    --namespace kube-system \
+    --cluster $cluster_name \
+    --role-name AmazonEKS_EBS_CSI_DriverRole \
+    --role-only \
+    --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+    --approve
+
+eksctl create addon --name aws-ebs-csi-driver --cluster $cluster_name --service-account-role-arn arn:aws:iam::533267287911:role/AmazonEKS_EBS_CSI_DriverRole --force
+
+#Install Grafana and Prometheus stack using helm
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install prometheus prometheus-community/kube-prometheus-stack \
+--namespace monitoring --create-namespace
+
+#Access Grafana locally
+
+k get pod 
+kubectl port-forward deployment/prometheus-grafana 3000 -n monitoring
+open localhost:3000
+
+#get grafana password:
+
+kubectl get secret prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+username will be admin
+
+#Access Prometheus locally
+
+k port-forward service/prometheus-kube-prometheus-prometheus 9090 -n monitoring
+localhost:9090
+
+#Set up Nginx Ingress Controller 
+
+helm upgrade --install ingress-nginx ingress-nginx \
+ --repo https://kubernetes.github.io/ingress-nginx \
+ --namespace ingress-nginx --create-namespace
+
+#Expose Grafana and Prometheus using Ingress
+kubectl apply -f grafana-prom-ingress.yaml
+
+#Install mongodb statefulset + mongo-express 
+
+cd mongoeks
+helm upgrade --install my-mongodb \
+--values mongodb-values.yaml bitnami/mongodb \
+--namespace mongo --create-namespace
+
+kubectl apply -f mongo-express.yaml 
+
+
