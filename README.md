@@ -1,6 +1,7 @@
 # eks-prometheus-grafana
 
 #Create EKS cluster 
+
 eksctl create cluster --node-volume-size=15 --zones=us-east-1a,us-east-1b
 #Install csi driver for EBS 
 
