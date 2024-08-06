@@ -4,12 +4,12 @@
 
 eksctl create cluster --node-volume-size=15 --zones=us-east-1a,us-east-1b
 #Install csi driver for EBS 
-
 #get your clustername 
+
 aws eks list-clusters
 cluster_name=floral-creature-1722365091
-
 #Create an IAM OIDC identity provider
+
 eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
 Create iam role 
 eksctl create iamserviceaccount \
