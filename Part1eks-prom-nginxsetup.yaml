@@ -1,16 +1,19 @@
-#Create EKS cluster 
+Tools needed: kubectl, eksctl, helm, AWS account
+
+#Create EKS cluster with a funny random name. Indicate zones to workaround an error creating a cluster in a random zone where the needed instance type is not available
 eksctl create cluster --node-volume-size=15 --zones=us-east-1a,us-east-1b
 
-#Install csi driver for EBS (for statefulsets volumes)
+========
+#Install csi driver for EBS (for statefulsets volumes) https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html :
 
-#get your clustername 
+#get your clustername and cteate veriable 
 aws eks list-clusters
 cluster_name=floral-creature-1722365091
 
-#Create an IAM OIDC identity provider
+#create an IAM OIDC identity provider
 eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
 
-#Create iam role 
+#create iam role 
 eksctl create iamserviceaccount \
     --name ebs-csi-controller-sa \
     --namespace kube-system \
@@ -19,8 +22,10 @@ eksctl create iamserviceaccount \
     --role-only \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve
-
+    
+#create addon
 eksctl create addon --name aws-ebs-csi-driver --cluster $cluster_name --service-account-role-arn arn:aws:iam::111111111111:role/AmazonEKS_EBS_CSI_DriverRole --force
+========
 
 #Install Grafana and Prometheus stack using helm
 
@@ -29,7 +34,7 @@ helm repo update
 helm install prometheus prometheus-community/kube-prometheus-stack \
 --namespace monitoring --create-namespace
 
-#Access Grafana locally
+#Access Grafana locally jfyi to verify 
 
 k get pod 
 kubectl port-forward deployment/prometheus-grafana 3000 -n monitoring
@@ -44,6 +49,7 @@ username will be admin
 
 k port-forward service/prometheus-kube-prometheus-prometheus 9090 -n monitoring
 localhost:9090
+=========
 
 #Set up Nginx Ingress Controller in ingress-nginx namespace
 
@@ -53,12 +59,20 @@ helm upgrade --install ingress-nginx ingress-nginx \
 
 #Verify 
 kubectl get pod,svc -n ingress-nginx
+NAME                                            READY   STATUS    RESTARTS   AGE
+pod/ingress-nginx-controller-69bd47995d-dtrgb   1/1     Running   0          36s
+
+NAME                                         TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)                      AGE
+service/ingress-nginx-controller             LoadBalancer   10.100.45.249   a6852dd25f07b4c7181dbdd5517eb4eb-275986524.us-east-1.elb.amazonaws.com   80:32494/TCP,443:30900/TCP   36s
+service/ingress-nginx-controller-admission   ClusterIP      10.100.231.92   <none>                                                                   443/TCP           
+
 #get the IP of the Load Balanser assigned to the service 
 
 #Expose Grafana and Prometheus using Ingress
-#Create ingress resource file and apply
+#create ingress resource file and apply
 kubectl apply -f ingress-grafana-prom.yaml
-k describe ingress -n monitoring
+
+kubectl describe ingress -n monitoring
 Name:             grafana-prom-ingress
 Labels:           <none>
 Namespace:        monitoring
