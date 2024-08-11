@@ -1,0 +1,43 @@
+#Install mongodb statefulset + mongo-express 
+#Create mongodb-values.yaml with the needed values 
+cat mongodb-values.yaml
+architecture: replicaset
+replicaCount: 1
+persistence:
+    storageClass: gp2 #standard for minikueb setup
+auth:
+    rootPassword: passworld123
+    
+helm upgrade --install my-mongodb \
+--values mongodb-values.yaml bitnami/mongodb \
+--namespace mongo --create-namespace
+
+kubectl apply -f mongo-express.yaml 
+k get ingress -n mongo
+NAME            CLASS   HOSTS                 ADDRESS   PORTS   AGE
+mongo-ingress   nginx   mongo.honeybunny.no             80      9s
+
+#Update hosts file and access UI default credentials: admin:pass
+
+#deploy mongodb exporter 
+https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-mongodb-exporter
+
+#create file with values to overwrite 
+helm show values prometheus-community/prometheus-mongodb-exporter 
+cat mongodb-exp-values.yaml
+# [mongodb[+srv]://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
+mongodb:
+  uri: "my-mongodb-0://my-mongodb-headless:27017"
+serviceMonitor:
+  enabled: true
+  additionalLabels: 
+    release: prometheus
+    
+helm install mongodb-exporter prometheus-community/prometheus-mongodb-exporter -n monitoring -f mongodb-exp-values.yaml
+
+#pod service and servicemonitor will be created. check if all of that are running 
+
+#check endpoint locally 
+kubectl port-forward service/mongodb-exporter-prometheus-mongodb-exporter 9216
+localhost:9216
+#see endpoint in Prometheus > Targets
