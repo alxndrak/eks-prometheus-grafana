@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wp-configmap
+namespace: helloworld
+data:
+  database_url: wordpress-mysql-service  # the same name as a service 
+  database_name: wordpress
