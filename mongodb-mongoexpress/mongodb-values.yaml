@@ -1,0 +1,6 @@
+architecture: replicaset
+replicaCount: 1
+persistence:
+    storageClass: gp2 #standard for minikueb setup
+auth:
+    rootPassword: passworld123
