@@ -1,0 +1,21 @@
+=====
+Deploy wordpress 
+
+#create namespace 
+kubectl create namespace helloworld 
+#go to the directpry with .yaml files for Wordpress installation and apply 
+kubectl apply -f .
+#verify persistent volmes are created and pods are running 
+$ kubectl get pv -n helloworld
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                  STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-7306b625-9fa2-44e7-ac56-1eb703edd345   5Gi        RWO            Delete           Bound    helloworld/mysql-pvc   gp2            <unset>                          4m33s
+pvc-cd90476a-6428-45f3-834f-6b087c1875e8   5Gi        RWO            Delete           Bound    helloworld/wp-pvc      gp2            <unset>                          4m27s
+$ kubectl get pods -n helloworld
+NAME                         READY   STATUS    RESTARTS   AGE
+wordpress-5c6894677b-cb67n   1/1     Running   0          3m18s
+wordpress-mysql-0            1/1     Running   0          3m19s
+#verify ingress has been created 
+$ kubectl get ingress -n helloworld
+NAME         CLASS   HOSTS           ADDRESS   PORTS   AGE
+wp-ingress   nginx   honeybunny.no             80      6m19s
+#update hosts file. Access the website in a browser and finish Wordpress installation. It will get you to the installation page to create admin user access 
