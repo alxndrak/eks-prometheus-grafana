@@ -5,9 +5,20 @@ kubectl --namespace monitoring port-forward prometheus-blackbox-prometheus-black
 #check config map 
 kubectl -n monitoring get cm prometheus-blackbox-prometheus-blackbox-exporter -o yaml
 
-#add endpoints to monitor: google to test, and existing internal endpoints
+#add endpoints to monitor: google to test, and existing internal endpoints mongo-express returnes 401 unauthorized code - add a corresponding module 
 create file blackbox-exporter-values.yaml
 
+config:
+  modules:
+    http_4xx:
+      prober: http
+      timeout: 15s
+      http:
+        method: GET
+        valid_status_codes: [401]
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
 serviceMonitor:
   enabled: true
   defaults:
@@ -20,7 +31,7 @@ serviceMonitor:
       url: wordpress-service.helloworld.svc.cluster.local:80
     - name: mongo.honeybunny.no
       url: mongo-express-service.mongo.svc.cluster.local:8081
-
+      
 #apply new values 
 helm -n monitoring upgrade --install prometheus-blackbox prometheus-community/prometheus-blackbox-exporter -f blackbox-exporter-values.yaml
 #it will create servicemonitors in Prometheus, check targets in Prometheus UI 
