@@ -5,20 +5,9 @@ kubectl --namespace monitoring port-forward prometheus-blackbox-prometheus-black
 #check config map 
 kubectl -n monitoring get cm prometheus-blackbox-prometheus-blackbox-exporter -o yaml
 
-#add endpoints to monitor: google to test, and existing internal endpoints mongo-express returnes 401 unauthorized code - add a corresponding module 
+#add endpoints to monitor: google to test, and existing internal endpoints  
 create file blackbox-exporter-values.yaml
 
-config:
-  modules:
-    http_4xx:
-      prober: http
-      timeout: 15s
-      http:
-        method: GET
-        valid_status_codes: [401]
-        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
-        follow_redirects: true
-        preferred_ip_protocol: "ip4"
 serviceMonitor:
   enabled: true
   defaults:
