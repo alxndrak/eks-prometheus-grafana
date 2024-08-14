@@ -1,0 +1,29 @@
+#Deploy blackbox-exporter 
+helm install prometheus-blackbox prometheus-community/prometheus-blackbox-exporter -n monitoring
+#see example of the metrics for blackbox exporter
+kubectl --namespace monitoring port-forward prometheus-blackbox-prometheus-blackbox-exporter-6b7b94cdf855nk 8080:9115
+#check config map 
+kubectl -n monitoring get cm prometheus-blackbox-prometheus-blackbox-exporter -o yaml
+
+#add endpoints to monitor: google to test, and existing internal endpoints
+create file blackbox-exporter-values.yaml
+
+serviceMonitor:
+  enabled: true
+  defaults:
+    labels:
+      release: prometheus
+  targets:
+    - name: google.com
+      url: https://google.com
+    - name: honeybunny.no
+      url: wordpress-service.helloworld.svc.cluster.local:80
+    - name: mongo.honeybunny.no
+      url: mongo-express-service.mongo.svc.cluster.local:8081
+
+#apply new values 
+helm -n monitoring upgrade --install prometheus-blackbox prometheus-community/prometheus-blackbox-exporter -f blackbox-exporter-values.yaml
+#it will create servicemonitors in Prometheus, check targets in Prometheus UI 
+
+#Import the Blackbox dashboard https://grafana.com/grafana/dashboards/7587-prometheus-blackbox-exporter/
+#Open Grfana UI > + > Import Dashboard > enter the dashboard ID 7587 > Load 
