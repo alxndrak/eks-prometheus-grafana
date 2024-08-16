@@ -1,4 +1,4 @@
-#Install mongodb statefulset + mongo-express 
+#Install mongodb statefulset + mongo-express (https://github.com/alxndrak/eks-prometheus-grafana/tree/main/mongodb-mongoexpress-helm)
 #Create mongodb-values.yaml with the needed values 
 cat mongodb-values.yaml
 architecture: replicaset
