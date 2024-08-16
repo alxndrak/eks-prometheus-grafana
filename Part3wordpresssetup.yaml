@@ -3,7 +3,7 @@ Deploy wordpress
 
 #create namespace 
 kubectl create namespace helloworld 
-#go to the directpry with .yaml files for Wordpress installation and apply 
+#go to the directpry with .yaml files for Wordpress installation and apply (https://github.com/alxndrak/eks-prometheus-grafana/tree/main/wordpresseks)
 kubectl apply -f .
 #verify persistent volmes are created and pods are running 
 $ kubectl get pv -n helloworld
