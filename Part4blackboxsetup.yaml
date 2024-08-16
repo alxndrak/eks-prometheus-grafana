@@ -1,13 +1,25 @@
 #Deploy blackbox-exporter 
 helm install prometheus-blackbox prometheus-community/prometheus-blackbox-exporter -n monitoring
-#see example of the metrics for blackbox exporter
-kubectl --namespace monitoring port-forward prometheus-blackbox-prometheus-blackbox-exporter-6b7b94cdf855nk 8080:9115
+#see example of the metrics for blackbox exporter, recent probes for existing targets, to debug why probe failed 
+kubectl --namespace monitoring port-forward prometheus-blackbox-prometheus-blackbox-exporter-6b7b94cdf855nk 9115
 #check config map 
 kubectl -n monitoring get cm prometheus-blackbox-prometheus-blackbox-exporter -o yaml
 
+#add additional module http_4xx to probe mongo-express that returns 401 code 
 #add endpoints to monitor: google to test, and existing internal endpoints  
 create file blackbox-exporter-values.yaml
 
+config:
+  modules:
+    http_4xx:
+      prober: http
+      timeout: 5s
+      http:
+        method: GET
+        valid_status_codes: [401]
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
 serviceMonitor:
   enabled: true
   defaults:
@@ -20,6 +32,7 @@ serviceMonitor:
       url: wordpress-service.helloworld.svc.cluster.local:80
     - name: mongo.honeybunny.no
       url: mongo-express-service.mongo.svc.cluster.local:8081
+      module: http_4xx
       
 #apply new values 
 helm -n monitoring upgrade --install prometheus-blackbox prometheus-community/prometheus-blackbox-exporter -f blackbox-exporter-values.yaml
@@ -27,3 +40,4 @@ helm -n monitoring upgrade --install prometheus-blackbox prometheus-community/pr
 
 #Import the Blackbox dashboard https://grafana.com/grafana/dashboards/7587-prometheus-blackbox-exporter/
 #Open Grfana UI > + > Import Dashboard > enter the dashboard ID 7587 > Load 
+
