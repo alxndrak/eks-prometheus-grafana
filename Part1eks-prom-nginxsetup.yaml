@@ -1,14 +1,15 @@
-Tools needed: kubectl, eksctl, helm, AWS account
+Tools needed: kubectl, eksctl, helm, AWS account, aws cli
 
 #Create EKS cluster with a funny random name. Indicate zones to workaround an error creating a cluster in a random zone where the needed instance type is not available
 eksctl create cluster --node-volume-size=15 --zones=us-east-1a,us-east-1b
-
+#connect to the cluster 
+aws eks update-kubeconfig --region us-east-1 --name wonderful-sculpture-1723397295
 ========
 #Install csi driver for EBS (for statefulsets volumes) https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html :
 
-#get your clustername and cteate veriable 
+#get your clustername and cteate variable
 aws eks list-clusters
-cluster_name=floral-creature-1722365091
+cluster_name=wonderful-sculpture-1723397295
 
 #create an IAM OIDC identity provider
 eksctl utils associate-iam-oidc-provider --cluster $cluster_name --approve
@@ -68,7 +69,7 @@ service/ingress-nginx-controller-admission   ClusterIP      10.100.231.92   <non
 
 #get the IP of the Load Balanser assigned to the service 
 
-#Expose Grafana and Prometheus using Ingress
+#Expose Grafana and Prometheus using Ingress:
 #create ingress resource file and apply
 kubectl apply -f ingress-grafana-prom.yaml
 
