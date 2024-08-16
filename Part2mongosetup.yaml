@@ -41,3 +41,5 @@ helm install mongodb-exporter prometheus-community/prometheus-mongodb-exporter -
 kubectl port-forward service/mongodb-exporter-prometheus-mongodb-exporter 9216
 localhost:9216
 #see endpoint in Prometheus > Targets
+
+(#Files for manual installation https://github.com/alxndrak/eks-prometheus-grafana/tree/main/mongodb-mongoexpress-manual)
